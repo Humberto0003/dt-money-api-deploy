@@ -1,11 +1,10 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import "dotenv/config";
-import { ValidationPipe } from '@nestjs/common';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+export function configureApp(app: INestApplication) {
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
     forbidNonWhitelisted: true,
@@ -17,6 +16,7 @@ async function bootstrap() {
     .setDescription('API para gerenciamento de transações financeiras')
     .setVersion('1.0')
     .addTag('transactions', 'Endpoints relacionados a transações financeiras')
+    .addTag('users', 'Endpoints relacionados a usuarios')
     .build();
   
   const document = SwaggerModule.createDocument(app, config);
@@ -25,6 +25,14 @@ async function bootstrap() {
   
   // habilitar cors
   app.enableCors();
+}
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  configureApp(app);
   await app.listen(process.env.PORT ?? 3333);
 }
-bootstrap();
+
+if (process.env.VERCEL !== '1') {
+  bootstrap();
+}
